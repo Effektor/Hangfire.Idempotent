@@ -13,7 +13,7 @@
 ## Installation
 
 ```bash
-dotnet add package Effektor.Hangfire.IdempotentJobs
+dotnet add package Effektor.Hangfire.Idempotent
 ```
 
 ---
