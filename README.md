@@ -1,7 +1,7 @@
 
-# Hangfire.IdempotentJobs
+# Hangfire.Idempotent
 
-**Hangfire.IdempotentJobs** is a lightweight extension for [Hangfire](https://www.hangfire.io/) that prevents duplicate jobs from being enqueued based on their method and arguments.
+**Hangfire.Idempotent** is a lightweight extension for [Hangfire](https://www.hangfire.io/) that prevents duplicate jobs from being enqueued based on their method and arguments.
 
 - ✅ Works for normal jobs, delayed jobs, and recurring jobs
 - ✅ No custom job IDs or special scheduling needed
