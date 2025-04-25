@@ -73,19 +73,8 @@ If a job with the same method and arguments already exists in the queue, schedul
 ## Notes
 
 - **Performance:** By default, scans up to 500 jobs in each state. You can adjust the number depending on your load.
-- **Race conditions:** There is a minimal risk of race conditions when two jobs are created at exactly the same time. Future improvements might include tighter state locking if needed.
+- **Race conditions:** There is a minimal risk of race conditions when a job switches state, e.g. goes from Enqueueued -> Scheduled and similar.
 - **Limitations:** Failed jobs are not scanned; only active jobs (Enqueued, Scheduled, Fetched) are considered for deduplication.
-
----
-
-## Roadmap
-
-- Configurable maximum jobs to scan
-- Option to include or exclude retries
-- Optional fuzzy matching for argument comparison
-- Optimized state scanning for large job queues
-
----
 
 ## License
 
