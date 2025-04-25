@@ -1,29 +1,17 @@
-﻿using Hangfire;
-using Hangfire.MemoryStorage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-
-using Hangfire.Idempotent;
-using Hangfire.Storage;
+﻿using Hangfire.MemoryStorage;
 
 namespace TestHangfireIdempotent
 {
-    internal class HangfireJobs
+    internal class BackgroundJobsTests
     {
-        BackgroundJobServer server;
+        private BackgroundJobServer server;
 
-        static HangfireJobs()
+        static BackgroundJobsTests()
         {
             // Initialize Hangfire configuration
             GlobalConfiguration.Configuration
                 .UseMemoryStorage()
                 .UseIdempotent();
-
-            
         }
 
         [SetUp]
@@ -35,8 +23,6 @@ namespace TestHangfireIdempotent
         [Test]
         public void TestAddJob()
         {
-            
-            
             // Act
             var job = BackgroundJob.Enqueue(() => Console.WriteLine());
             var jobData = JobStorage.Current.GetConnection().GetJobData(job);
@@ -66,7 +52,7 @@ namespace TestHangfireIdempotent
             var job2 = BackgroundJob.Enqueue(() => IdempotentJob());
 
             // Assert
-            Assert.That(job2 ,Is.Null);
+            Assert.That(job2, Is.Null);
         }
 
         [Test]
@@ -86,7 +72,7 @@ namespace TestHangfireIdempotent
             do
             {
                 await Task.Delay(5000);
-                
+
                 state = connection.GetJobData(job1).State;
             }
             while (state != "Succeeded");
@@ -105,17 +91,15 @@ namespace TestHangfireIdempotent
         [IdempotentJob]
         public void IdempotentJob()
         {
-            Task.Delay(50).Wait(); // Simulate some work being done
-            // This method is a placeholder for the actual job logic
+            Task.Delay(50).Wait();
             Console.WriteLine("Executing Idempotent Job");
         }
 
         [TearDown]
         public void TearDown()
         {
-            // Cleanup code if needed
-            // For example, you can clear the job storage or dispose of resources
             server.WaitForShutdown(TimeSpan.FromSeconds(1));
+            server.Dispose();
         }
     }
 }

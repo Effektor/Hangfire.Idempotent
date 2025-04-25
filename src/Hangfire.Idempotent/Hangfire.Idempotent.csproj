@@ -7,8 +7,22 @@
     <Title>Hangfire.Idempotent</Title>
     <Company>Effektor Teknik AB</Company>
     <Authors>Effektor</Authors>
-    <Description>Idempotent Jobs extension for Hangfire</Description>    
+    <Description>Idempotent Jobs extension for Hangfire</Description>
+    <PackageId>Effektor.$(AssemblyName)</PackageId>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+	<AssemblyVersion>1.0.1</AssemblyVersion>
+	  <PackageVersion>$(AssemblyVersion)</PackageVersion>
+	<PackageProjectUrl>https://github.com/Effektor/Hangfire.Idempotent.git</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/Effektor/Hangfire.Idempotent.git</RepositoryUrl>
+	<PackageTags>Hangfire;Extension;Idempotent</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="hangfire.core" Version="1.8.18" />

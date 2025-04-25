@@ -1,30 +1,20 @@
 ﻿using Hangfire.Client;
 using Hangfire.Common;
-using Hangfire.States;
-using Hangfire.Storage;
 using Hangfire.Storage.Monitoring;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Hangfire.Idempotent;
 
 [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-public class IdempotentJobAttribute : JobFilterAttribute, IClientFilter, IApplyStateFilter
+public class IdempotentJobAttribute : JobFilterAttribute, IClientFilter
 {
-    public void OnCreated(CreatedContext context)
-    {
-        
-    }
+
+    internal static IdempotentConfiguration DefaultConfiguration { get; set; } = new IdempotentConfiguration();
+    public void OnCreated(CreatedContext context) { }
 
     public void OnCreating(CreatingContext context)
     {
         if (ShouldDeduplicate(context.Job))
-            if(IsDuplicateJob(context.Job))
+            if (IsDuplicateJob(context.Job))
                 context.Canceled = true;
 
     }
@@ -39,11 +29,12 @@ public class IdempotentJobAttribute : JobFilterAttribute, IClientFilter, IApplyS
         List<KeyValuePair<string, ScheduledJobDto>> scheduled;
         List<KeyValuePair<string, FetchedJobDto>> fetched;
 
+        //Todo: See if we can can insert ourselves into the state change pipeline so we can lock around state changes and avoid race conditions.
         lock (lockObject)
         {
-            enqueued = monitor.EnqueuedJobs(state.Queue ?? "default", 0, 100).ToList();
-            scheduled = monitor.ScheduledJobs(0, 100).ToList();
-            fetched = monitor.FetchedJobs(state.Queue ?? "default", 0, 100).ToList();
+            enqueued = monitor.EnqueuedJobs(state.Queue ?? "default", 0, DefaultConfiguration.MaxRetrievals).ToList();
+            scheduled = monitor.ScheduledJobs(0, DefaultConfiguration.MaxRetrievals).ToList();
+            fetched = monitor.FetchedJobs(state.Queue ?? "default", 0, DefaultConfiguration.MaxRetrievals).ToList();
         }
 
         foreach (var pair in enqueued)
@@ -51,13 +42,13 @@ public class IdempotentJobAttribute : JobFilterAttribute, IClientFilter, IApplyS
             var existing = pair.Value.Job;
             if (AreJobsEqual(existing, targetJob)) return true;
         }
-        
+
         foreach (var pair in scheduled)
         {
             var existing = pair.Value.Job;
             if (AreJobsEqual(existing, targetJob)) return true;
         }
-        
+
         foreach (var pair in fetched)
         {
             var existing = pair.Value.Job;
@@ -80,27 +71,12 @@ public class IdempotentJobAttribute : JobFilterAttribute, IClientFilter, IApplyS
         return true;
     }
 
-    private object lockObject = new object();
+    private object lockObject = new object();   
 
     private bool ShouldDeduplicate(Job job)
     {
         var method = job.Method;
         var attributes = method.GetCustomAttributes(typeof(IdempotentJobAttribute), false);
         return attributes != null;
-    }
-
-    public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
-    {
-        lock(lockObject)
-        {
-            
-            
-            
-        }
-    }
-
-    public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
-    {
-        
     }
 }
