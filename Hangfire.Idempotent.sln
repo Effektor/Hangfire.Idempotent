@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{97D802F0-BB4D-497B-8DBC-FE9942D0841E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +56,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2C9FABC5-658D-4085-9EEF-88C87DB15ADA} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{8651E0BA-ED72-41E0-B831-F0512854CF90} = {97D802F0-BB4D-497B-8DBC-FE9942D0841E}
 	EndGlobalSection
 EndGlobal

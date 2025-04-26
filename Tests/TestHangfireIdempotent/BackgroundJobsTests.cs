@@ -68,7 +68,7 @@ namespace TestHangfireIdempotent
             Assert.That(jobData, Is.Not.Null);
 
             // Wait for the job to complete
-            string state = null;
+            string state = "";
             do
             {
                 await Task.Delay(5000);
