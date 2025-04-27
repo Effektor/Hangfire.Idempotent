@@ -1,25 +1,39 @@
 ﻿using Hangfire.Common;
 using Hangfire.MemoryStorage;
 using Hangfire.Storage;
+using System.Diagnostics;
 
 namespace TestHangfireIdempotent;
 
 [TestFixture]
 public class FailedJobRescheduleTests
 {
+
+    /*
+     The BackgroundJobClient will cache the MemoryStorage on first use and there is no facility to clear the memory or swap out the
+     */
+
     private BackgroundJobServer _server;
+    private static MemoryStorage _store;
+    private BackgroundJobClient _jobClient;
+
     static FailedJobRescheduleTests()
     {
+        _store = new MemoryStorage();
         // Initialize Hangfire configuration
         GlobalConfiguration.Configuration
-            .UseMemoryStorage()
+            .UseStorage(_store)
             .UseIdempotent();
     }
    
     [SetUp]
     public void Setup()
-    {       
+    {
+        _store = new MemoryStorage();
+        GlobalConfiguration.Configuration.UseStorage(_store);
         _server = new BackgroundJobServer();
+        JobStorage.Current = _store;
+        _jobClient = new BackgroundJobClient(_store);
     }
 
     [TearDown]
@@ -32,7 +46,7 @@ public class FailedJobRescheduleTests
     public async Task ErrorJob_ShouldBeRetried()
     {
         var service = new FailSucceedJobService();
-        var job = BackgroundJob.Enqueue(() => service.MightFail());
+        var job = _jobClient.Enqueue(() => service.MightFail());
 
         JobData jobData;
 
@@ -92,7 +106,7 @@ public class FailedJobRescheduleTests
     public async Task ErroJobs_ShouldBeDedupedWhileRetrying()
     {
         var service = new FailSucceedJobService();
-        var job = BackgroundJob.Enqueue(() => service.MightFail());
+        var job = _jobClient.Enqueue(() => service.MightFail());
 
         JobData jobData;
 
@@ -109,8 +123,8 @@ public class FailedJobRescheduleTests
             "Job should be either failed, scheduled for retry, or currently processing"
         );
 
-        BackgroundJob.Enqueue(() => service.MightFail());
-        BackgroundJob.Enqueue(() => service.MightFail());
+        _jobClient.Enqueue(() => service.MightFail());
+        _jobClient.Enqueue(() => service.MightFail());
 
         long succeeded;
         do
@@ -134,7 +148,9 @@ public class FailedJobRescheduleTests
     public async Task ErroJobs_ShouldNotBeDedupedAfterFail()
     {
         var service = new ConfigFailService();
-        var job = BackgroundJob.Enqueue(() => service.MightFail());
+        var job = _jobClient.Enqueue(() => service.MightFail());
+
+        Assert.That(job, Is.Not.Null, "Job should not be null");
 
         JobData jobData;
 
@@ -151,8 +167,8 @@ public class FailedJobRescheduleTests
             "Job should be either failed, scheduled for retry, or currently processing"
         );
 
-        BackgroundJob.Enqueue(() => service.MightFail());
-        BackgroundJob.Enqueue(() => service.MightFail());
+        job = _jobClient.Enqueue(() => service.MightFail());
+        Assert.That(job, Is.Null);
 
         long failed;
         do
@@ -163,7 +179,8 @@ public class FailedJobRescheduleTests
         } while (failed == 0);
         ConfigFailService.AllowSucceed = true;
         ConfigFailService.AttemptCount = 0; // Reset attempt count to allow the job to succeed
-        BackgroundJob.Enqueue(() => service.MightFail());
+        job = _jobClient.Enqueue(() => service.MightFail());
+        Assert.That(job, Is.Not.Null, "Job should not be null");
         await Task.Delay(2000);
 
         // After first job is failed state, allow second job to succeed        
