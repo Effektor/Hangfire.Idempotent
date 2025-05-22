@@ -27,9 +27,9 @@ public class DuplicateJobDetector
         // Todo: See if we can can insert ourselves into the state change pipeline so we can lock around state changes and avoid race conditions.
         lock (lockObject)
         {
-            enqueued = monitoringApi.EnqueuedJobs(defaultQueue, 0, configuration.MaxRetrievals).ToList();
+            enqueued = monitoringApi.EnqueuedJobs(targetJob.Queue ?? defaultQueue, 0, configuration.MaxRetrievals).ToList();
             scheduled = monitoringApi.ScheduledJobs(0, configuration.MaxRetrievals).ToList();
-            fetched = monitoringApi.FetchedJobs(defaultQueue, 0, configuration.MaxRetrievals).ToList();
+            fetched = monitoringApi.FetchedJobs(targetJob.Queue ?? defaultQueue, 0, configuration.MaxRetrievals).ToList();
         }
 
         foreach (var pair in enqueued)

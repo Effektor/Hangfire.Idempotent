@@ -92,4 +92,38 @@ public class DuplicateJobDetectorTests
         
         Assert.That(result, Is.False);
     }
+
+    [Test]
+    public void IsDuplicateJob_DuplicateOnNamedQueue_ReturnsFalse()
+    {
+        var targetJob = Job.FromExpression(() => Console.WriteLine("Test"), "critical");
+        var duplicateJob = Job.FromExpression(() => Console.WriteLine("Test"), "critical");
+        
+        var monitoringApiMock = new Mock<IMonitoringApi>();
+        
+        monitoringApiMock.Setup(m => m.EnqueuedJobs("default", It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(new JobList<EnqueuedJobDto>([]));
+        
+        // The "critical" queue has our duplicate job
+        monitoringApiMock.Setup(m => m.EnqueuedJobs("critical", It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(new JobList<EnqueuedJobDto?>([
+                new KeyValuePair<string, EnqueuedJobDto?>("job1", new EnqueuedJobDto { Job = duplicateJob })
+            ]));
+            
+        monitoringApiMock.Setup(m => m.ScheduledJobs(It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(new JobList<ScheduledJobDto>([]));
+            
+        monitoringApiMock.Setup(m => m.FetchedJobs("default", It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(new JobList<FetchedJobDto>([]));
+        
+        monitoringApiMock.Setup(m => m.FetchedJobs("critical", It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(new JobList<FetchedJobDto>([]));
+        
+        var config = new IdempotentConfiguration { MaxRetrievals = 100 };
+        var detector = new DuplicateJobDetector(monitoringApiMock.Object, config);
+        
+        var result = detector.IsDuplicateJob(targetJob);
+        
+        Assert.That(result, Is.True);
+    }
 }
