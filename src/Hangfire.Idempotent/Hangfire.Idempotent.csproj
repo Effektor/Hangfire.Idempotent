@@ -10,7 +10,7 @@
     <Description>Idempotent Jobs extension for Hangfire</Description>
     <PackageId>Effektor.$(AssemblyName)</PackageId>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-	<AssemblyVersion>1.0.2</AssemblyVersion>
+	<AssemblyVersion>1.0.3</AssemblyVersion>
 	  <PackageVersion>$(AssemblyVersion)</PackageVersion>
 	<PackageProjectUrl>https://github.com/Effektor/Hangfire.Idempotent.git</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/Effektor/Hangfire.Idempotent.git</RepositoryUrl>
